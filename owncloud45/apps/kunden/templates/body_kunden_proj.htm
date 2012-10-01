@@ -1,0 +1,28 @@
+<br />
+
+
+
+<a href="javascript:showMoreInfo('1','$projectId','$kundenId');" class="button">Server ($COUNTSERVER)</a>
+<a href="javascript:showMoreInfo('2','$projectId','$kundenId');" class="button">Email ($COUNTEMAIL)</a>
+<a href="javascript:showMoreInfo('3','$projectId','$kundenId');" class="button">FTP ($COUNTFTP)</a>
+<a href="javascript:showMoreInfo('4','$projectId','$kundenId');" class="button">Datenbank ($COUNTDB)</a>
+<a href="javascript:showMoreInfo('5','$projectId','$kundenId');" class="button">Webseite ($COUNTWEB)</a>
+
+<a href="javascript:delProject('$projectId');" style="float:right;" class="button">loeschen</a>
+<a href="javascript:switchDataFunction('editKundeBut');" id="editKundeBut" style="float:right;" class="button">bearbeiten</a>
+
+<form name="kundeEdit" id="kundeEdit" method"post" action="">
+<input type="hidden" name="ajaxaction" value="10" />
+<input type="hidden" name="projectId" value="$projectId" />
+<fieldset class="personalblock" style="float:left;width:60em;" valign="top">
+	<label class="editField" name="sTitle" title="Name">$pTitle</label>
+	Status: <label class="editField" name="sStatus" title="Status">$pStatus</label> %<br />
+	<br />
+	<label class="editField txtarea" name="sDescr" title="Beschreibung">$pDescr</label>
+	
+</fieldset>
+
+</form>
+<fieldset class="personalblock" style="float:left;width:95%;" id="iMoreOption" valign="top">
+
+</fieldset>

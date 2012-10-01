@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<info>
+	<id>kunden</id>
+	<name>Kundenverwaltung</name>
+	<description>Manage Deine Kunden</description>
+	<licence>AGPL or MIT</licence>
+	<author>Sebastian Doell</author>
+	<require>4</require>
+	<shipped>true</shipped>
+</info>
