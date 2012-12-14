@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<info>
+	<id>files_sharing_widget</id>
+	<name>Share Gallery  Widget</name>
+	<description>Picture Sharing Gallery Widget for use of implementing on a website or share by a Link</description>
+	<licence>AGPL</licence>
+	<author>S. Doell</author>
+	<require>4.9</require>
+	<shipped>true</shipped>
+	<default_enable/>
+	<types>
+		<filesystem/>
+	</types>	
+</info>
