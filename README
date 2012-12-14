@@ -1,8 +1,0 @@
-Tested for OC4.5.4 Install instructions
-------------------------------------------------
-1. Load the files to the structure of your OC installation (No Files would be overwritten!!)
-2. Activate the App [Share Gallery Widget]
-3. Go To the admin settings [Share Pics Widget Secret Key and Site-E-Mail] add a secret word like "iamsecret" and enter a site email for the sharing link send email
-4. Go To the personal settings [Overview Shared Files and Folders] and enter here your Configurationparameters Picture Widget and save
-
-That's all and now when you sharing a folder of images with subfolders you have a nice webwidget gallery.
