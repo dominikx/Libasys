@@ -102,7 +102,7 @@ class OC_Widget_Helper {
 		\n<link href=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT).$getRelativeAppsPath."/files_sharing_widget/img/startup.png\" rel=\"apple-touch-startup-image\" />
         \n<link href=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT).$getRelativeAppsPath."/files_sharing_widget/img/homescreen.png\" rel=\"apple-touch-icon\" />
 										\n<script>var ownWidgetOptions = {crypt:'".$_GET['iToken']."',path:'".OC_HELPER::makeURLAbsolute(OC::$WEBROOT)."',appspath:'".$getRelativeAppsPath."',cssAddWidget:{'width':'".$WIDTH."','height':'".$HEIGHT."'}};</script>
-										\n<script src=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT).$getRelativeAppsPath."/files_sharing_widget/widgetloader.php\" type=\"text/javascript\"></script>\n
+										\n<script src=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT)."widgetloader.php\" type=\"text/javascript\"></script>\n
 									\n</head>
 									\n<body class=\"widgetbg\">
 										\n<div id=\"ownWidget-container\"></div>

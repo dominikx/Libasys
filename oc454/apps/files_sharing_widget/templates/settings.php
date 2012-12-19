@@ -55,7 +55,7 @@ Use as Widget: (For Integration Homepage, Facebook)<br />
 	cssAddWidget:{'width':670,'height':400}
 	}
 </script>
-<script src="<?php echo OC_HELPER::makeURLAbsolute(OC::$WEBROOT) . '/' . $getRelativeAppsPath . '/'; ?>files_sharing_widget/widgetloader.php" type="text/javascript"></script></textarea>
+<script src="<?php echo OC_HELPER::makeURLAbsolute(OC::$WEBROOT); ?>/widgetloader.php" type="text/javascript"></script></textarea>
 
 </fieldset>
 <!-- Dialogs -->
