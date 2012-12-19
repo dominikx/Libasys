@@ -6,8 +6,10 @@ Tested for OC4.5.4 Install instructions And Now also for OC4.5
 4. Go To the personal settings [Overview Shared Files and Folders] and enter here your Configurationparameters Picture Widget and save
 
 That's all and now when you sharing a folder of images with subfolders you have a nice webwidget gallery.
+
 [UPDATE]
-Please delete the widgetloader.php in the root of OC => moved to apps path
+If you have another apps directory as default (apps) where files_sharing_widget would be installed than you have to change the appspath
+in the widgetloader.php
 
 [NEW Features]
 Now you can use The Gallery Widget in an other apps folder (e.g. apps2) if this is in config.php iconfigurated
