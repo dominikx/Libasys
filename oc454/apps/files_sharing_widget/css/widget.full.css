@@ -8,7 +8,7 @@
  */
 
 body.widgetbg {
-	background: #fff url('../img/purty_wood.jpg') repeat
+	background: #fff url('../img/purty_wood.jpg') repeat;
 }
 #ownWidget-container {
 	position: absolute;
@@ -1083,13 +1083,22 @@ img {
 	position: fixed;
 	right: 10px;
 	top: 10px;
+	z-index:202;
+	width: 24px;
+	height: 24px;
+	line-height: 24px;
+	border: 2px solid #fff;
 	background: #000;
-	width: 30px;
-	height: 30px;
-	line-height: 30px;
-	border-radius: 15px;
 	color: #fff;
-	text-align: center
+	font-family: arial;
+	font-weight: bold;
+	font-size: 14px;
+	text-align: center;
+	box-shadow: 0 1px 8px rgba(0,0,0,0.6);
+	-webkit-box-shadow: 0 1px 8px rgba(0,0,0,0.6);
+	border-radius: 13px;
+	cursor: pointer;
+	-webkit-border-radius: 13px;
 }
 #slideshow-content #thumb-tray {
 	position: fixed;

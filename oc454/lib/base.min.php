@@ -55,7 +55,7 @@ class OC{
 	 * MULTI INSTANCE OF cloud installation
 	 */
 	 
-	 public static $SESSIONPREFIX = '';
+	// public static $SESSIONPREFIX = '';
 	 
 	/**
 	 * SPL autoload
@@ -141,7 +141,18 @@ class OC{
 			echo("3rdparty directory not found! Please put the ownCloud 3rdparty folder in the ownCloud folder or the folder above. You can also configure the location in the config.php file.");
 			exit;
 		}
-		if(file_exists(OC::$SERVERROOT.'/apps')) {
+		
+		// search the apps folder
+		$config_paths = OC_Config::getValue('apps_paths', array());
+		if(! empty($config_paths)) {
+			foreach($config_paths as $paths) {
+				if( isset($paths['url']) && isset($paths['path'])) {
+					$paths['url'] = rtrim($paths['url'], '/');
+					$paths['path'] = rtrim($paths['path'], '/');
+					OC::$APPSROOTS[] = $paths;
+				}
+			}
+		}elseif(file_exists(OC::$SERVERROOT.'/apps')) {
 			OC::$APPSROOTS[] = array('path'=> OC::$SERVERROOT.'/apps', 'url' => '/apps', 'writable' => true);
 		}elseif(file_exists(OC::$SERVERROOT.'/../apps')) {
 			OC::$APPSROOTS[] = array('path'=> rtrim(dirname(OC::$SERVERROOT), '/').'/apps', 'url' => '/apps', 'writable' => true);
@@ -151,9 +162,9 @@ class OC{
 			echo("apps directory not found! Please put the ownCloud apps folder in the ownCloud folder or the folder above. You can also configure the location in the config.php file.");
 			exit;
 		}
+		
 		$paths = array();
-		foreach( OC::$APPSROOTS as $path)
-			$paths[] = $path['path'];
+		foreach( OC::$APPSROOTS as $path)	$paths[] = $path['path'];
 
 		// set the right include path
 		set_include_path(
@@ -204,7 +215,7 @@ class OC{
 		@ini_set('post_max_size', '10G');
 		@ini_set('file_uploads', '50');
 		//print OC::$SERVERROOT;
-		OC::$SESSIONPREFIX=OC_Config::getValue('SESSIONPREFIX');
+	
        // session_save_path('/is/htdocs/wp11048482_6MQ454GFGE/www/demo/tmp');
 		//try to set the session lifetime to 60min
 		@ini_set('gc_maxlifetime', '3600');

@@ -18,6 +18,12 @@ $ObjSaveParamter['imgheight']=intval($_POST['spthumb']);
 $ObjSaveParamter['width']=intval($_POST['spwidth']);
 $ObjSaveParamter['height']=intval($_POST['spheight']);
 
+$ObjSaveParamter['watermarktxt']=addslashes($_POST['spWMTxt']);
+if($_POST['spWMTxt']!='') $ObjSaveParamter['watermark']=1;
+else $ObjSaveParamter['watermark']=0;
+
+$ObjSaveParamter['title']=addslashes($_POST['spTitle']);
+
 $ObjSaveJson=json_encode($ObjSaveParamter);
 OC_Preferences::setValue( OC_User::getUser(), 'files_sharing_widget', 'parameter', $ObjSaveJson);
 

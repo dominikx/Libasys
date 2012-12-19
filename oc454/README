@@ -1,4 +1,4 @@
-Tested for OC4.5.4 Install instructions
+Tested for OC4.5.4 Install instructions And Now also for OC4.5
 ------------------------------------------------
 1. Load the files to the structure of your OC installation (No Files would be overwritten!!)
 2. Activate the App [Share Gallery Widget]
@@ -6,3 +6,10 @@ Tested for OC4.5.4 Install instructions
 4. Go To the personal settings [Overview Shared Files and Folders] and enter here your Configurationparameters Picture Widget and save
 
 That's all and now when you sharing a folder of images with subfolders you have a nice webwidget gallery.
+[UPDATE]
+Please delete the widgetloader.php in the root of OC => moved to apps path
+
+[NEW Features]
+Now you can use The Gallery Widget in an other apps folder (e.g. apps2) if this is in config.php iconfigurated
+Now you can create your own Watermark text to the pictures (Copyright Hint)
+New Js Engine in the widget.js

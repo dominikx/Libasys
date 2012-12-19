@@ -17,12 +17,12 @@ $getSchluessel= decrypt(rawurldecode($_GET['iToken']),$shareSecret);
 
 $_GET['dir']=$getSchluessel;
 $_GET['service']='pics';
-
+/*
 $file='files_sharing_widget/public.php';
 if(is_null($file)) {
 	header('HTTP/1.0 404 Not Found');
 	exit;
-}
+}*/
 
 OC_Util::checkAppEnabled('files_sharing_widget');
 OC_App::loadApp('files_sharing_widget');

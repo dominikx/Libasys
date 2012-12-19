@@ -7,22 +7,15 @@
  *
  */
 (function() {
-	
 
 	var jQuery;
-    var widOpt=ownWidgetOptions;          
-    var widgetContainer;        
-    var overlay; 
-    var loadPage="";
-    var firstShow=true;
-	var imageSlide = [];
-
-	
+  	
 	if (window.jQuery === undefined || window.jQuery.fn.jquery !== "1.8.2") {
 		var script_tag = document.createElement("script");
 		script_tag.setAttribute("type", "text/javascript");
-		script_tag.setAttribute("src", widOpt.path + "apps/files_sharing_widget/js/jquery-pack.min.js");
+		script_tag.setAttribute("src",ownWidgetOptions.path + ownWidgetOptions.appspath+ "/files_sharing_widget/js/jquery-pack.min.js");
 		if (script_tag.readyState) {
+			
 			script_tag.onreadystatechange = function() {
 				if (this.readyState == "complete" || this.readyState == "loaded") {
 					scriptLoadHandler();
@@ -51,43 +44,172 @@
 		str = (str + "").toString();
 		return encodeURIComponent(str).replace(/!/g, "%21").replace(/'/g, "%27").replace(/\(/g, "%28").replace(/\)/g, "%29").replace(/\*/g, "%2A");
 	}
-
-  function initMovingBox(){
-  		 var h=widgetContainer.height() - 80;
-					    if(jQuery('#albumPics').length > 0) var h=widgetContainer.height() -210;
-						
-						jQuery("#ownWidget-slider").movingBoxes({
-							reducedSize : 1,
-							startPanel : 1,
-							hashTags : false,
-							speed : 700,
-							fixedHeight : true,
-							wrap : false,
-							buildNav : true,
-							navFormatter : function() {
-								return "&#9679;"
-							},
-							preinit:function(){
-							  widgetContainer.prepend('<div id="ownWidget-Loader">&nbsp;</div>');
-							    jQuery("#ownWidget-output").hide();
-								jQuery(".mb-wrapper").css({height : h});
-							},
-							initialized:function(e, slider, tar){
-								jQuery(".mb-scroll").height(h-20);
-								jQuery("#ownWidget-slider").height(h-20);
-								jQuery("#ownWidget-Loader").remove();	
-								jQuery("#ownWidget-output").show();		
-														
-							}
-			});
-  }
-  
-	function loadData() {
+ 
+	function main() {
+		jQuery(document).ready(function($) {
+		//	if($.browser.msie && $.browser.version<9){
+				//widgetContainer.css('opacity',0.3);
+		//	}
+			 OwnWidget.init(ownWidgetOptions);
+		});
+	}
+	
+var OwnWidget={
+	
+	init:function(options){
+		var defaults={ 
+			crypt:'',
+		 	path:'',
+		 	appspath:'apps',
+		 	display:'',
+		 	fbAppid:'',
+		 	modal:true,
+		 	cssAddWidget:{'width':1000,'height':560},
+		 	cssAddButton:{'top':20,'left':20},
+		 	buttonlabel:'Fotogalerie'
+		}
+		this.options=jQuery.extend(true,defaults,options);
+		this.loadCssFile();
+		this.imageSlide = [];
+		this.loadPage='';
+		this.widgetContainer=jQuery("#ownWidget-container");
+		this.firstShow=true;
+		if(this.options.fbAppid!=''){
+			this.loginToFacebookApp();
+		}
 		
+		    if (this.options.display == "hidden") {
+				this.createShowButton();
+			} else {
+				this.showWidget();
+		   }
+	   this.initSupersized()	   
+	},
+	
+	loadCssFile:function(){
+		if(jQuery('#ownWidgetCss').length<1){
+		  jQuery("<link>", {id:'ownWidgetCss',rel : "stylesheet",type : "text/css",href :this.options.path + this.options.appspath+ "/files_sharing_widget/css/widget.css"}).appendTo("head");
+		}
+	},
+	
+	createShowButton:function () {
+		self=this;
+		this.widgetContainer.hide();
+		if (this.options.modal) {
+			this.overlay = jQuery('<div id="ownWidget-overlayWid"></div>').appendTo("body");
+		}
+		this.addWidgetControls();
+		var DisplayButton = jQuery('<div id="ownWidget-displayButton">' + this.options.buttonlabel + "</div>");
+		DisplayButton.css(this.options.cssAddButton);
+		DisplayButton.appendTo("body");
+		DisplayButton.click(function() {
+			if (self.options.modal) {
+				self.overlay.height(jQuery(window).height());
+				self.overlay.width(jQuery(window).width());
+				self.overlay.animate({
+					opacity : 0.5
+				}, 500, function() {
+					 self.loadData();
+				});
+			} else {
+				 self.loadData();
+			}
+		});
+	},
+	
+	showWidget: function (){
+		
+		this.widgetContainer.hide();
+		this.addWidgetControls();
+		this.loadData();
+		
+	},
+	
+	 addWidgetControls:function() {
+		var self=this;
+		if (this.options.display == "hidden") {
+			var CloseButton = jQuery('<div id="ownWidget-closeButton" style="cursor:pointer;">X</div>');
+			this.widgetContainer.prepend(CloseButton);
+		}
+		this.widgetContainer.prepend('<div id="ownWidget-output" class="jcarousel"></div>');
+		var wHeader = jQuery('<div id="ownWidget-header"></div><div id="SlideShowButton">Slideshow</div>');
+		this.widgetContainer.prepend(wHeader);
+		
+		jQuery("#SlideShowButton").click(function() {
+			self.widgetContainer.animate({
+				opacity : "toggle"
+			}, 500, function() {
+				jQuery("body").append("<div id='supersized-holder'></div>");
+				jQuery("#supersized-loader").remove();
+				jQuery("#supersized").remove();
+				jQuery("#supersized-holder").append("<div id='supersized-loader'></div><ul id='supersized' style=\"z-index:200;\"></ul>");
+				jQuery("#supersized").show();
+				jQuery("#slideshow-content").animate({opacity : "toggle"});
+				jQuery("a[rel=fancyArea]").each(function(i, el) {
+					self.imageSlide.push({
+						image : el.href,
+						title : el.title.replace(/</, "&lt;").replace(/>/, "&gt;"),
+						thumb : el.children[0].src
+					});
+				});
+				self.loadSupersized();
+			});
+		});
+		jQuery("#SlideShowButton").hide();
+		if (this.options.display == "hidden") {
+			CloseButton.click(function() {
+				self.widgetContainer.animate({
+					opacity : "toggle"
+				}, 500, function() {
+					if (self.options.modal) {
+						self.overlay.height(0);
+						self.overlay.width(0);
+					}
+					self.firstShow = true;
+					self.widgetContainer.hide();
+				});
+			});
+		}
+	},
+	 initMovingBox:function(){
+  		   
+  		   var self=this;
+  		    var h=this.widgetContainer.height() - 80;
+  		    
+		    if(jQuery('#albumPics').length > 0) var h=this.widgetContainer.height() -210;
+			
+			jQuery("#ownWidget-slider").movingBoxes({
+				reducedSize : 1,
+				startPanel : 1,
+				hashTags : false,
+				speed : 700,
+				fixedHeight : true,
+				wrap : false,
+				buildNav : true,
+				navFormatter : function() {
+					return "&#9679;"
+				},
+				preinit:function(){
+				  self.widgetContainer.prepend('<div id="ownWidget-Loader">&nbsp;</div>');
+				    jQuery("#ownWidget-output").hide();
+					jQuery(".mb-wrapper").css({height : h});
+				},
+				initialized:function(e, slider, tar){
+					jQuery(".mb-scroll").height(h-20);
+					jQuery("#ownWidget-slider").height(h-20);
+					jQuery("#ownWidget-Loader").remove();	
+					jQuery("#ownWidget-output").show();		
+											
+				}
+			});
+     },
+     
+     loadData:function() {
+		var self = this;
 		jQuery.ajax({
 			dataType : "jsonp",
 			jsonp : "jsonp_callback",
-			url : widOpt.path + "widget.php?iToken=" + rawurlencode(widOpt.crypt) + loadPage,
+			url : self.options.path + "widget.php?iToken=" + rawurlencode(self.options.crypt) + self.loadPage,
 			
 			success : function(data) {
 				
@@ -99,44 +221,44 @@
 				if (jQuery("#loginForm").length > 0) {
 					jQuery("#loginForm #iSubmit").click(function(event) {
 						event.preventDefault();
-						loadPage = "&password=" + jQuery("#password").val();
-						loadData();
+						self.loadPage = "&password=" + jQuery("#password").val();
+						self.loadData();
 					});
 				}
 				jQuery("#ownWidget-header .loadAlbum").each(function(i, el) {
 					jQuery(el).click(function() {
 						if (jQuery(el).attr("title") == "") {
-							loadPage = "";
+							self.loadPage = "";
 						} else {
-							loadPage = "&path=/" + jQuery(el).attr("title");
+							self.loadPage = "&path=/" + jQuery(el).attr("title");
 						}
-						loadData();
+						self.loadData();
 					})
 				});
 				
-				if (firstShow) {
+				if (self.firstShow) {
 					
-					widgetContainer.css(widOpt.cssAddWidget);
+					self.widgetContainer.css(self.options.cssAddWidget);
 					
-					if (!widOpt.cssAddWidget.top && !widOpt.cssAddWidget.left) {
-						widgetContainer.css({
-							top : (jQuery(window).height() / 2) - (widgetContainer.height() / 2),
-							left : (jQuery(window).width() / 2) - (widgetContainer.width() / 2)
+					if (!self.options.cssAddWidget.top && !self.options.cssAddWidget.left) {
+						self.widgetContainer.css({
+							top : (jQuery(window).height() / 2) - (self.widgetContainer.height() / 2),
+							left : (jQuery(window).width() / 2) - (self.widgetContainer.width() / 2)
 						});
 					}
 					
-					widgetContainer.show();
+					self.widgetContainer.show();
 				
-					firstShow = false;
+					self.firstShow = false;
 				}
 				
 				if (jQuery("#ownWidget-slider").length > 0) {
 					
-					jQuery("#ownWidget-slider").css({width : widgetContainer.width() - 12});
-					jQuery("#ownWidget-slider > div").css({width : widgetContainer.width() - 15	});
+					jQuery("#ownWidget-slider").css({width : self.widgetContainer.width() - 12});
+					jQuery("#ownWidget-slider > div").css({width : self.widgetContainer.width() - 15	});
 					
 					if (jQuery("#ownWidget-slider > div").length > 1) {
-					   initMovingBox();
+					   self.initMovingBox();
 					} else {
 						if (jQuery("#ownWidget-slider").html() == "") {
 							jQuery("#ownWidget-slider").html("<div>No images found!</div>");
@@ -161,14 +283,13 @@
 				  
 				}
 			});
-	}
-
-	function loadSuperSizedTheme() {
+	   },
+	   loadSuperSizedTheme:function() {
 		jQuery.supersized.themeVars = {
 			progress_delay : false,
 			thumb_page : false,
 			thumb_interval : false,
-			image_path : widOpt.path + "apps/files_sharing_widget/img/",
+			image_path : this.options.path + this.options.appspath+ "/files_sharing_widget/img/",
 			play_button : "#pauseplay",
 			next_slide : "#nextslide",
 			prev_slide : "#prevslide",
@@ -186,25 +307,25 @@
 			tray_button : "#tray-button",
 			progress_bar : "#progress-bar"
 		}
-	}
-
-	function initSupersized() {
-		var htmlString = '<div id="slideshow-content" style="display:none;"><div id="closeSlideShow">X</div><div id="prevthumb"></div><div id="nextthumb"></div>	<a id="prevslide" class="load-item"></a>	<a id="nextslide" class="load-item"></a>	<div id="thumb-tray" class="load-item"><div id="thumb-back"></div><div id="thumb-forward"></div></div>	<div id="progress-back" class="load-item"><div id="progress-bar"></div></div><div id="controls-wrapper" class="load-item"><div id="controls"><a id="play-button"><img id="pauseplay" src="' + widOpt.path + 'apps/files_sharing_widget/img/pause.png" /></a><div id="slidecounter"><span class="slidenumber"></span><span class="totalslides"></span></div><div id="slidecaption"></div><a id="tray-button"><img id="tray-arrow" src="' + widOpt.path + 'apps/files_sharing_widget/img/button-tray-up.png" /></a><ul id="slide-list"></ul></div></div></div>';
+	},
+	 initSupersized:function() {
+		var self=this;
+		var htmlString = '<div id="slideshow-content" style="display:none;z-index:201;"><div id="closeSlideShow">X</div><div id="prevthumb"></div><div id="nextthumb"></div>	<a id="prevslide" class="load-item"></a>	<a id="nextslide" class="load-item"></a>	<div id="thumb-tray" class="load-item"><div id="thumb-back"></div><div id="thumb-forward"></div></div>	<div id="progress-back" class="load-item"><div id="progress-bar"></div></div><div id="controls-wrapper" class="load-item"><div id="controls"><a id="play-button"><img id="pauseplay" src="'+ this.options.path + this.options.appspath + '/files_sharing_widget/img/pause.png" /></a><div id="slidecounter"><span class="slidenumber"></span><span class="totalslides"></span></div><div id="slidecaption"></div><a id="tray-button"><img id="tray-arrow" src="' + this.options.path + this.options.appspath + '/files_sharing_widget/img/button-tray-up.png" /></a><ul id="slide-list"></ul></div></div></div>';
 		jQuery(htmlString).appendTo("body");
 		jQuery("#closeSlideShow").click(function() {
 			if (jQuery.supersized.vars.slideshow_interval) {
 				clearInterval(jQuery.supersized.vars.slideshow_interval);
 			}
-			imageSlide = [];
+			self.imageSlide = [];
 			jQuery("#supersized-holder").remove();
 			jQuery("#slideshow-content").animate({opacity : "toggle"});
 			jQuery("#thumb-list").remove();
-			widgetContainer.animate({opacity : "toggle"});
+			self.widgetContainer.animate({opacity : "toggle"});
 		});
-	}
+	},
 
-	function loadSupersized() {
-		loadSuperSizedTheme();
+	loadSupersized:function() {
+		this.loadSuperSizedTheme();
 		jQuery.supersized({
 			slideshow : 1,
 			autoplay : 0,
@@ -230,107 +351,26 @@
 			new_window : false,
 			thumb_links : 1,
 			thumbnail_navigation : 0,
-			slides : imageSlide,
+			slides : this.imageSlide,
 			progress_bar : 1,
 			mouse_scrub : 0
 		});
-	}
+	},
+     loginToFacebookApp:function(){
+   	      jQuery('body').append('<div id="fb-root"></div>');
+		  jQuery.getScript(document.location.protocol + '//connect.facebook.net/de_DE/all.js');
+          window.fbAsyncInit = function() {
+		        FB.init({appId:this.options.fbAppid, status: true, cookie: true, xfbml: true});		    
+		};
+       
+   }	
 
-	function addWidgetControls() {
-		if (widOpt.display == "hidden") {
-			var CloseButton = jQuery('<div id="ownWidget-closeButton">X</div>');
-			widgetContainer.prepend(CloseButton);
-		}
-		widgetContainer.prepend('<div id="ownWidget-output" class="jcarousel"></div>');
-		var wHeader = jQuery('<div id="ownWidget-header"></div><div id="SlideShowButton">Slideshow</div>');
-		widgetContainer.prepend(wHeader);
-		
-		jQuery("#SlideShowButton").click(function() {
-			widgetContainer.animate({
-				opacity : "toggle"
-			}, 500, function() {
-				jQuery("body").append("<div id='supersized-holder'></div>");
-				jQuery("#supersized-loader").remove();
-				jQuery("#supersized").remove();
-				jQuery("#supersized-holder").append("<div id='supersized-loader'></div><ul id='supersized'></ul>");
-				jQuery("#supersized").show();
-				jQuery("#slideshow-content").animate({opacity : "toggle"});
-				jQuery("a[rel=fancyArea]").each(function(i, el) {
-					imageSlide.push({
-						image : el.href,
-						title : el.title.replace(/</, "&lt;").replace(/>/, "&gt;"),
-						thumb : el.children[0].src
-					});
-				});
-				loadSupersized();
-			});
-		});
-		jQuery("#SlideShowButton").hide();
-		if (widOpt.display == "hidden") {
-			CloseButton.click(function() {
-				widgetContainer.animate({
-					opacity : "toggle"
-				}, 500, function() {
-					if (widOpt.modal) {
-						overlay.height(0);
-						overlay.width(0);
-					}
-					firstShow = true;
-					widgetContainer.hide();
-				});
-			});
-		}
-	}
 
-	function showWidget(){
-		widgetContainer.hide();
-		addWidgetControls();
-		loadData();
-		initSupersized();
-	}
-  
-	function createShowButton() {
-		widgetContainer.hide();
-		if (widOpt.modal) {
-			overlay = jQuery('<div id="ownWidget-overlayWid"></div>').appendTo("body");
-		}
-		addWidgetControls();
-		var DisplayButton = jQuery('<div id="ownWidget-displayButton">' + widOpt.buttonlabel + "</div>");
-		DisplayButton.css(widOpt.cssAddButton);
-		DisplayButton.appendTo("body");
-		DisplayButton.click(function() {
-			if (widOpt.modal) {
-				overlay.height(jQuery(window).height());
-				overlay.width(jQuery(window).width());
-				overlay.animate({
-					opacity : 0.5
-				}, 500, function() {
-					 loadData();
-				});
-			} else {
-				 loadData();
-			}
-		});
-	}
 
-	function main() {
-		jQuery(document).ready(function($) {
-			widgetContainer = $("#ownWidget-container");
-			$("<link>", {
-				rel : "stylesheet",
-				type : "text/css",
-				href : widOpt.path + "apps/files_sharing_widget/css/widget.full.css"
-			}).appendTo("head");
-			if($.browser.msie && $.browser.version<9){
-				//widgetContainer.css('opacity',0.3);
-			}
-			if (widOpt.display == "hidden") {
-				createShowButton();
-			} else {
-				showWidget();
-			}
-			
-		});
-	}
+	
+	
+}
 
 })(); 
+
+

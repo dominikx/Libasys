@@ -29,8 +29,16 @@ class OC_Widget_Helper {
 	 * @param int thumgheight
 	 *@return Thumb
 	 */
+	 public static function txtWaterMark($imgSrc,$height,$txt){
+		$white = imagecolorallocate($imgSrc, 255, 255, 255);
+		$font_path =  OC_App::getAppPath('files_sharing_widget')."/font/MonospaceTypewriter.ttf";
+		//print $font_path;
+		if(is_file($font_path)){
+			 imagettftext($imgSrc,10, 0, 10, ($height-10), $white, $font_path, $txt);
+		}
+	} 
 	 
-   public static function makeThumb($path,$imgHeight=150) {
+   public static function makeThumb($path,$imgHeight=150,$bWatermark=true,$sWatermarkTxt='(c) zeus-cloud') {
                 $img = $path;
 				
 				
@@ -39,13 +47,32 @@ class OC_Widget_Helper {
 				if (!$image -> valid())
 					return false;
 				$image -> fixOrientation();
+				
 				$ret = $image -> preciseResize(floor(($imgHeight * $image -> width()) / $image -> height()), $imgHeight);
+				if($bWatermark) OC_Widget_Helper::txtWaterMark($image ->resource(),$imgHeight,$sWatermarkTxt);
 				if ($image) {
 					OCP\Response::enableCaching(3600 * 24);
 					// 24 hour
 					$image -> show();
 				}
-   }
+     }
+   
+   
+    public static function makeNormPic($path,$bWatermark=true,$sWatermarkTxt='(c) zeus-cloud') {
+                $img = $path;
+				
+				$image = new \OC_Image();
+				$image -> loadFromFile(OC_Filesystem::getLocalFile($img));
+				if (!$image -> valid())	return false;
+				$image -> fixOrientation();
+				$ret = $image -> preciseResize($image -> width(),  $image -> height());
+				if($bWatermark) OC_Widget_Helper::txtWaterMark($image ->resource(),$image -> height(),$sWatermarkTxt);
+				if ($image) {
+					OCP\Response::enableCaching(3600 * 24);
+					// 24 hour
+					$image -> show();
+				}
+     }
    
     /**
 	 * @load Template for real view
@@ -54,16 +81,28 @@ class OC_Widget_Helper {
 	 * @return return the template
 	 *
 	 */
+   public static function getRelativeAppWebPath() {
+		
+		foreach(OC::$APPSROOTS as $dir) {
+			if(file_exists($dir['path'].'/files_sharing_widget')) {
+				return $dir['url'];
+			}
+		}
+		return false;
+	}
    
-    public static function loadTemplateReal($WIDTH="770",$HEIGHT="570") {
+    public static function loadTemplateReal($WIDTH="770",$HEIGHT="570",$TITLE='Zeus-Cloud Picture Widget') {
     	
-		$tpl="<!DOCTYPE html>\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"de-DE\" lang=\"de-DE\">\n<head>\n<title>Picture Widget</title>
+		$getRelativeAppsPath=OC_Widget_Helper::getRelativeAppWebPath();
+		if(strripos(OC::$WEBROOT,'/')) $getRelativeAppsPath=substr($getRelativeAppsPath,1,strlen($getRelativeAppsPath)-1);
+		
+		$tpl="<!DOCTYPE html>\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"de-DE\" lang=\"de-DE\">\n<head>\n<title>".htmlentities(utf8_decode($TITLE))."</title>
 		\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" /><meta content=\"yes\" name=\"apple-mobile-web-app-capable\" />
 		\n<meta content=\"minimum-scale=1.0, width=device-width, maximum-scale=0.6667, user-scalable=no\" name=\"viewport\" />
-		\n<link href=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT)."apps/files_sharing_widget/img/startup.png\" rel=\"apple-touch-startup-image\" />
-        \n<link href=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT)."apps/files_sharing_widget/img/homescreen.png\" rel=\"apple-touch-icon\" />
-										\n<script>var ownWidgetOptions = {crypt:'".$_GET['iToken']."',path:'".OC_HELPER::makeURLAbsolute(OC::$WEBROOT)."',cssAddWidget:{'width':'".$WIDTH."','height':'".$HEIGHT."'}};</script>
-										\n<script src=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT)."widgetloader.php\" type=\"text/javascript\"></script>\n
+		\n<link href=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT).$getRelativeAppsPath."/files_sharing_widget/img/startup.png\" rel=\"apple-touch-startup-image\" />
+        \n<link href=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT).$getRelativeAppsPath."/files_sharing_widget/img/homescreen.png\" rel=\"apple-touch-icon\" />
+										\n<script>var ownWidgetOptions = {crypt:'".$_GET['iToken']."',path:'".OC_HELPER::makeURLAbsolute(OC::$WEBROOT)."',appspath:'".$getRelativeAppsPath."',cssAddWidget:{'width':'".$WIDTH."','height':'".$HEIGHT."'}};</script>
+										\n<script src=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT).$getRelativeAppsPath."/files_sharing_widget/widgetloader.php\" type=\"text/javascript\"></script>\n
 									\n</head>
 									\n<body class=\"widgetbg\">
 										\n<div id=\"ownWidget-container\"></div>
@@ -130,9 +169,12 @@ class OC_Widget_Helper {
     
        //  USER = 0; GROUP = 1;LINK = 3;
        // link = parent.location.protocol+'//'+location.host+OC.linkTo('', 'public.php')+'?service=files&'+$('tr[data-id='+String(itemSource)+']').attr('data-type')+'='+file;
- 		
+ 		$SQLMORE='';
+ 		if(OCP\Config::getSystemValue('version')>='4.90.5'){
+ 			$SQLMORE=",s.token ";
+ 		}
 
-         $SQL="SELECT s.id,s.share_with,s.file_target,.s.item_type,s.share_type,s.expiration,s.uid_owner,s.token, f.path FROM  *PREFIX*share s
+         $SQL="SELECT s.id,s.share_with,s.file_target,.s.item_type,s.share_type,s.expiration,s.uid_owner, f.path $SQLMORE FROM  *PREFIX*share s
          LEFT JOIN  *PREFIX*fscache f ON s.item_source=f.id 
          WHERE s.uid_owner='".\OC_User::getUser()."'  ";
          $stmt = \OCP\DB::prepare( $SQL);
@@ -158,7 +200,7 @@ class OC_Widget_Helper {
                          'shareName'=>$share['share_with'],
                         'link'=>'#',
                         'name'=>$share['file_target'],
-                        'date'=>'Gültig bis: '.$EXPDATE,
+                        'date'=>$EXPDATE,
                         'iToken'=>''
                       );
                    }
@@ -169,20 +211,22 @@ class OC_Widget_Helper {
                         'shareName'=>$share['share_with'],
                         'link'=>'#',
                         'name'=>$share['file_target'],
-                        'date'=>'Gültig bis: '.$EXPDATE,
+                        'date'=>$EXPDATE,
                         'iToken'=>''
                       );
                    }
                  if($share['share_type']==3){
                      $addPassImg='';
+					 $tokenLink='&'.$itemTypeChoose.'='.$share['path'];
+					 if($SQLMORE!='') $tokenLink='&t='.$share['token'];
 					 if($share['share_with']!='') $addPassImg=' [Password]';	
                      $output[]=array(
                       'id'=>$share['id'],
                      'shareType'=>'Link',
                      'shareName'=>'Guest'.$addPassImg,
-                     'link'=>\OC_Helper::linkToPublic('files').'&t='.$share['token'],
+                     'link'=> \OC_Helper::linkToPublic('files').$tokenLink,
                       'name'=>$share['file_target'],
-                      'date'=>'Gültig bis: '.$EXPDATE,
+                      'date'=>$EXPDATE,
                       'iToken'=>rawurlencode(self::encrypt($share['path'],$SECRET))
                       );
                  }

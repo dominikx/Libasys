@@ -7,9 +7,9 @@
  *
  *
  */
-OC::$CLASSPATH['OC_Share_Backend_File'] = "apps/files_sharing/lib/share/file.php";
-OC::$CLASSPATH['OC_Share_Backend_Folder'] = 'apps/files_sharing/lib/share/folder.php';
-OC::$CLASSPATH['OC_Filestorage_Shared'] = "apps/files_sharing/lib/sharedstorage.php";
+OC::$CLASSPATH['OC_Share_Backend_File'] = "files_sharing/lib/share/file.php";
+OC::$CLASSPATH['OC_Share_Backend_Folder'] = 'files_sharing/lib/share/folder.php';
+OC::$CLASSPATH['OC_Filestorage_Shared'] = "files_sharing/lib/sharedstorage.php";
 OCP\Util::connectHook('OC_Filesystem', 'setup', 'OC_Filestorage_Shared', 'setup');
 OCP\Share::registerBackend('file', 'OC_Share_Backend_File');
 OCP\Share::registerBackend('folder', 'OC_Share_Backend_Folder', 'file');
@@ -49,7 +49,21 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 				$passwordProtect=false;
 					
 				$Param=OC_Preferences::getValue($uidOwner, 'files_sharing_widget', 'parameter','');	
-				$ObjParamter=json_decode($Param,true);
+				if($Param) $ObjParamter=json_decode($Param,true);
+				else{
+					$ObjParamter['maxpicsperpage']=10;
+					$ObjParamter['imgheight']=150;
+					$ObjParamter['width']=750;
+					$ObjParamter['height']=550;
+					$ObjParamter['watermark']=1;
+					$ObjParamter['watermarktxt']='';
+					$ObjParamter['title']='';
+				}
+				if(!isset($ObjParamter['watermarktxt'])) {
+					$ObjParamter['watermark']=0;	
+					$ObjParamter['watermarktxt']='';
+				}
+				if(!isset($ObjParamter['title'])) $ObjParamter['title']='';
 				
 				
 					
@@ -67,16 +81,16 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 						
 					} else {
 						// Save item id in session for future requests
-						$_SESSION[OC::$SESSIONPREFIX]['public_link_authenticated'] = $linkItem['id'];
+						$_SESSION['public_link_authenticated'] = $linkItem['id'];
 						$passwordProtect=false;		
 					}
 				// Check if item id is set in session
-				} else if (!isset($_SESSION[OC::$SESSIONPREFIX]['public_link_authenticated']) || $_SESSION[OC::$SESSIONPREFIX]['public_link_authenticated'] !== $linkItem['id']) {
+				} else if (!isset($_SESSION['public_link_authenticated']) || $_SESSION['public_link_authenticated'] !== $linkItem['id']) {
 					$passwordProtect=true;		
 					
 				}
 				
-				if(isset($_SESSION[OC::$SESSIONPREFIX]['public_link_authenticated']) && $_SESSION[OC::$SESSIONPREFIX]['public_link_authenticated']==$linkItem['id']){
+				if(isset($_SESSION['public_link_authenticated']) && $_SESSION['public_link_authenticated']==$linkItem['id']){
 					$passwordProtect=false;		
 				}
 			}
@@ -95,7 +109,8 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 				if (isset($_GET['action']) && $_GET['action']=='norm') {
 					if (isset($_GET['dir'])) {
 					   if (isset($_GET['path']) && $_GET['path'] != '') {// download a file from a shared directory
-							OC_Files::get('', $path, $_SERVER['REQUEST_METHOD'] == 'HEAD' ? true : false);
+							//OC_Files::get('', $path, $_SERVER['REQUEST_METHOD'] == 'HEAD' ? true : false);
+							OC_Widget_Helper::makeNormPic($path,$ObjParamter['watermark'],$ObjParamter['watermarktxt']);
 						}
 					} 
 			
@@ -103,7 +118,7 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 					
 					if (isset($_GET['dir'])) {
 						if (isset($_GET['path']) && $_GET['path'] != '') {
-							OC_Widget_Helper::makeThumb($path,$ObjParamter['imgheight']);
+							OC_Widget_Helper::makeThumb($path,$ObjParamter['imgheight'],$ObjParamter['watermark'],$ObjParamter['watermarktxt']);
 						}
 					}
 				}else{
@@ -179,7 +194,7 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 						$i['permissions'] = OCP\Share::PERMISSION_READ;
 
 					}
-					if($dataFolder=='') $dataFolder='<a style="margin-left:30px;" class="noAlbum">Alben: --</a>';
+					if($dataFolder=='') $dataFolder='';
 					else  $dataFolder='<br /><div id="albumPics">'.$dataFolder.'</div>';
                     
 					// Make breadcrumb
@@ -217,17 +232,17 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 						$data = json_encode($aBack);
 					    echo $_GET['jsonp_callback'] . '(' . $data . ');';
 					}else{
-						echo OC_Widget_Helper::loadTemplateReal($ObjParamter['width'],$ObjParamter['height']);
+						echo OC_Widget_Helper::loadTemplateReal($ObjParamter['width'],$ObjParamter['height'],$ObjParamter['title']);
 						
 					}
 				}else{
 					if($passwordProtect	){
 						$dataFolder='';
-						$breadCrumbOutput='Passwort eingeben';	
+						$breadCrumbOutput='Password';	
 						$dataOutput='<div style="text-align:center;margin-top:40px;"><form id="loginForm" action=" " method="post">
-													Passwort:
+													Password:
 													<input type="password" name="password" id="password" value="" />
-													<input type="submit" value="Los" id="iSubmit" />
+													<input type="submit" value="Go" id="iSubmit" />
 										             </form>
 										     </div>';		
 					}
@@ -237,7 +252,7 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 						$data = json_encode($aBack);
 					    echo $_GET['jsonp_callback'] . '(' . $data . ');';
 					}else{
-						echo OC_Widget_Helper::loadTemplateReal($ObjParamter['width'],$ObjParamter['height']);
+						echo OC_Widget_Helper::loadTemplateReal($ObjParamter['width'],$ObjParamter['height'],$ObjParamter['title']);
 						
 					}
 					
@@ -253,7 +268,7 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 						$data = json_encode($aBack);
 					    echo $_GET['jsonp_callback'] . '(' . $data . ');';
 					}else{
-						echo OC_Widget_Helper::loadTemplateReal($ObjParamter['width'],$ObjParamter['height']);
+						echo OC_Widget_Helper::loadTemplateReal($ObjParamter['width'],$ObjParamter['height'],$ObjParamter['title']);
 					}
 			}
 		}
