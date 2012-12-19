@@ -9,7 +9,7 @@
  */
 $cleanText='widgetloader.php';
 $pathload=str_replace($cleanText,'',$_SERVER['REQUEST_URI']);
-$pathload= webUrl().$pathload."js/widget.full.js";
+$pathload= webUrl().$pathload."js/widget.js";
 //print $pathload;
 header ("Content-type: text/javascript");
 readfile($pathload);
