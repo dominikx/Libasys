@@ -50,7 +50,11 @@
 		//	if($.browser.msie && $.browser.version<9){
 				//widgetContainer.css('opacity',0.3);
 		//	}
-			 OwnWidget.init(ownWidgetOptions);
+		 if(ownWidgetOptions.showButtonLink!=undefined){
+		    OwnWidget.prepareExternLink(ownWidgetOptions);
+		 }else{
+			 if($("#ownWidget-container").length>0) OwnWidget.init(ownWidgetOptions);
+		 }
 		});
 	}
 	
@@ -61,6 +65,9 @@ var OwnWidget={
 			crypt:'',
 		 	path:'',
 		 	appspath:'apps',
+		 	showButtonLink:'',
+		 	customThumbHeight:'',
+		 	customThumbpPage:'',
 		 	display:'',
 		 	fbAppid:'',
 		 	modal:true,
@@ -83,9 +90,21 @@ var OwnWidget={
 			} else {
 				this.showWidget();
 		   }
-	   this.initSupersized()	   
+	   this.initSupersized();
+	    
 	},
-	
+	prepareExternLink:function(options){
+		var self=this;
+		
+		if(options.showButtonLink!=''){
+			jQuery('#'+options.showButtonLink).click(function(){
+				clearTimeout(timeout);
+                var timeout=setTimeout(function(){self.init(options);}, 500);
+				
+						
+			});
+		}
+	},
 	loadCssFile:function(){
 		if(jQuery('#ownWidgetCss').length<1){
 		  jQuery("<link>", {id:'ownWidgetCss',rel : "stylesheet",type : "text/css",href :this.options.path + this.options.appspath+ "/files_sharing_widget/css/widget.css"}).appendTo("head");
@@ -206,10 +225,16 @@ var OwnWidget={
      
      loadData:function() {
 		var self = this;
+		var addCustomThumbSize='';
+		if(this.options.customThumbHeight!='') addCustomThumbSize='&cTh='+this.options.customThumbHeight;
+		
+		var addCustomThumbPage='';
+		if(this.options.customThumbpPage!='') addCustomThumbPage='&cTpP='+this.options.customThumbpPage;
+		//customThumbpPage
 		jQuery.ajax({
 			dataType : "jsonp",
 			jsonp : "jsonp_callback",
-			url : self.options.path + "widget.php?iToken=" + rawurlencode(self.options.crypt) + self.loadPage,
+			url : self.options.path + "widget.php?iToken=" + rawurlencode(self.options.crypt) + self.loadPage+addCustomThumbSize+addCustomThumbPage,
 			
 			success : function(data) {
 				
@@ -241,6 +266,7 @@ var OwnWidget={
 					self.widgetContainer.css(self.options.cssAddWidget);
 					
 					if (!self.options.cssAddWidget.top && !self.options.cssAddWidget.left) {
+						
 						self.widgetContainer.css({
 							top : (jQuery(window).height() / 2) - (self.widgetContainer.height() / 2),
 							left : (jQuery(window).width() / 2) - (self.widgetContainer.width() / 2)

@@ -7,6 +7,7 @@
  *
  *
  */
+ 
 OC::$CLASSPATH['OC_Share_Backend_File'] = "files_sharing/lib/share/file.php";
 OC::$CLASSPATH['OC_Share_Backend_Folder'] = 'files_sharing/lib/share/folder.php';
 OC::$CLASSPATH['OC_Filestorage_Shared'] = "files_sharing/lib/sharedstorage.php";
@@ -55,7 +56,7 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 					$ObjParamter['imgheight']=150;
 					$ObjParamter['width']=750;
 					$ObjParamter['height']=550;
-					$ObjParamter['watermark']=1;
+					$ObjParamter['watermark']=0;
 					$ObjParamter['watermarktxt']='';
 					$ObjParamter['title']='';
 				}
@@ -118,7 +119,9 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 					
 					if (isset($_GET['dir'])) {
 						if (isset($_GET['path']) && $_GET['path'] != '') {
-							OC_Widget_Helper::makeThumb($path,$ObjParamter['imgheight'],$ObjParamter['watermark'],$ObjParamter['watermarktxt']);
+							$addThumbHeight=$ObjParamter['imgheight'];	
+							if(isset($_GET['cTh']) && (intval($_GET['cTh']) > 49 && intval($_GET['cTh']) < 151)) $addThumbHeight=intval($_GET['cTh']);
+							OC_Widget_Helper::makeThumb($path,$addThumbHeight,$ObjParamter['watermark'],$ObjParamter['watermarktxt']);
 						}
 					}
 				}else{
@@ -134,14 +137,14 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 					$rootLength = strlen($baseDir) + 1;
 					$counter = 0;
 					$maxNeben = $ObjParamter['maxpicsperpage'];
-					if ($maxNeben)
-						$maxNeben = ((int)$maxNeben - 1);
+					if(isset($_GET['cTpP']) && (intval($_GET['cTpP']) > 2 && intval($_GET['cTpP']) < 31))	$maxNeben=intval($_GET['cTpP']);
+					if ($maxNeben)	$maxNeben = ((int)$maxNeben - 1);
 					if (!$maxNeben)	$maxNeben = 5;
 					
 					$mySecret=OCP\Config::getSystemValue('secretword');
 					if($mySecret=='') $mySecret='mySecretWord';
 					$thumbSize=$ObjParamter['imgheight'];
-					
+					if(isset($_GET['cTh']) && (intval($_GET['cTh']) > 49 && intval($_GET['cTh']) < 151))	$thumbSize=intval($_GET['cTh']);
 					//$aFilesArray=[];
 					
 					foreach (OC_Files::getDirectoryContent($path) as $i) {
@@ -183,9 +186,11 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 							    $ouputAlbumThumb='<div class="rotate"><div style="width:100px;height:75px;">&nbsp;</div ><span>'.$i['name'].' ('.$AlbumData['ANZAHLPICS'].')</span></div>';
 								if($AlbumData['path']){
 									$relPath=substr($AlbumData['path'], $rootLength);
+									if($thumbSize>66) $albumThSize=65;
+									else $albumThSize=$thumbSize;
 									
 									$ShowAlbumThumb = OC_Widget_Helper::linkToWidget('thumb') . '&path=/'.$relPath.'&iToken='.rawurlencode($_GET['iToken']);
-									$ouputAlbumThumb='<div class="rotate"><img class="imgAlbumshow" src="' . $ShowAlbumThumb . '" width="100" style="width:100px;height:65px;"  /><br /> <span>'.$i['name'].' ('.$AlbumData['ANZAHLPICS'].')</span></div>';
+									$ouputAlbumThumb='<div class="rotate"><img class="imgAlbumshow" src="' . $ShowAlbumThumb . '" height="'.$albumThSize.'" style="height:'.$albumThSize.'px;"  /><br /> <span>'.$i['name'].' ('.$AlbumData['ANZAHLPICS'].')</span></div>';
 								}
 								
 							   $dataFolder.= '<a class="loadAlbum" href="javascript:;" title="'.$i['directory'].'/'.$i['name'].'">'.$ouputAlbumThumb.'</a> ';
@@ -242,7 +247,7 @@ if (isset($_GET['file']) || isset($_GET['dir'])) {
 						$dataOutput='<div style="text-align:center;margin-top:40px;"><form id="loginForm" action=" " method="post">
 													Password:
 													<input type="password" name="password" id="password" value="" />
-													<input type="submit" value="Go" id="iSubmit" />
+													<input type="submit" value="Los" id="iSubmit" />
 										             </form>
 										     </div>';		
 					}
