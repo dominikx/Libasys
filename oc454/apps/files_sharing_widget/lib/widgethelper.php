@@ -99,10 +99,10 @@ class OC_Widget_Helper {
 		$tpl="<!DOCTYPE html>\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"de-DE\" lang=\"de-DE\">\n<head>\n<title>".htmlentities(utf8_decode($TITLE))."</title>
 		\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" /><meta content=\"yes\" name=\"apple-mobile-web-app-capable\" />
 		\n<meta content=\"minimum-scale=1.0, width=device-width, maximum-scale=0.6667, user-scalable=no\" name=\"viewport\" />
-		\n<link href=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT).$getRelativeAppsPath."/files_sharing_widget/img/startup.png\" rel=\"apple-touch-startup-image\" />
+		\n<link rel=\"shortcut icon\" href=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT)."/core/img/favicon.png\" /><link href=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT).$getRelativeAppsPath."/files_sharing_widget/img/startup.png\" rel=\"apple-touch-startup-image\" />
         \n<link href=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT).$getRelativeAppsPath."/files_sharing_widget/img/homescreen.png\" rel=\"apple-touch-icon\" />
 										\n<script>var ownWidgetOptions = {crypt:'".$_GET['iToken']."',path:'".OC_HELPER::makeURLAbsolute(OC::$WEBROOT)."',appspath:'".$getRelativeAppsPath."',cssAddWidget:{'width':'".$WIDTH."','height':'".$HEIGHT."'}};</script>
-										\n<script src=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT)."widgetloader.php\" type=\"text/javascript\"></script>\n
+										\n<script src=\"".OC_HELPER::makeURLAbsolute(OC::$WEBROOT).$getRelativeAppsPath."/files_sharing_widget/js/widget.js\" type=\"text/javascript\"></script>\n
 									\n</head>
 									\n<body class=\"widgetbg\">
 										\n<div id=\"ownWidget-container\"></div>
