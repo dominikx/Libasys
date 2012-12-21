@@ -12,3 +12,19 @@ That's all and now when you sharing a folder of images with subfolders you have 
 Now you can use The Gallery Widget in an other apps folder (e.g. apps2) if this is in config.php iconfigurated
 Now you can create your own Watermark text to the pictures (Copyright Hint)
 New Js Engine in the widget.js
+
+[DEMOS]
+On the right side the pics direct loaded from Owncloud Share Widget
+http://www.coding-schmiede.de/
+
+http://showcase.libasys.de/widget/
+
+Click on the Button the widget will be shown
+http://showcase.libasys.de/widgetdemo/
+
+Integration the Widget on Facebook [password protected]
+Pass:facebook
+http://www.facebook.com/pages/Libasys/212217432121922?sk=app_390630084348208
+
+Shared by a Link direct
+https://ssl.webpack.de/demo.libasyscloud.de/widget.php?action=real&iToken=ZI5%2BKcT%2FIF5CQUeEOk2%2F%2B2UPO6EEAMULrGyHGLSctBM%3D
