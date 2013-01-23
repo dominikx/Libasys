@@ -8,6 +8,7 @@
  *
  */
 
+require_once( __DIR__ . '/filecache.php');
 
 class OC_Widget_Helper {
 
@@ -37,9 +38,13 @@ class OC_Widget_Helper {
 			 imagettftext($imgSrc,10, 0, 10, ($height-10), $white, $font_path, $txt);
 		}
 	} 
-	 
+
    public static function makeThumb($path,$imgHeight=150,$bWatermark=true,$sWatermarkTxt='(c) zeus-cloud') {
-                $img = $path;
+		FileCache::cleanCache();
+		$cachekey = FileCache::key($path,$imgHeight,$bWatermark,$sWatermarkTxt);
+		$image = FileCache::getFile($cachekey);
+		if ($image == null) { // is valid?
+				$img = $path;
 				
 				
 				$image = new \OC_Image();
@@ -50,28 +55,35 @@ class OC_Widget_Helper {
 				
 				$ret = $image -> preciseResize(floor(($imgHeight * $image -> width()) / $image -> height()), $imgHeight);
 				if($bWatermark) OC_Widget_Helper::txtWaterMark($image ->resource(),$imgHeight,$sWatermarkTxt);
-				if ($image) {
-					OCP\Response::enableCaching(3600 * 24);
-					// 24 hour
-					$image -> show();
-				}
+				FileCache::setFile($cachekey, $image);
+		}
+		if ($image){
+			OCP\Response::enableCaching(3600 * 24);
+			// 24 hour
+			$image -> show();
+		}
      }
    
    
     public static function makeNormPic($path,$bWatermark=true,$sWatermarkTxt='(c) zeus-cloud') {
+		$cachekey = FileCache::key($path,$bWatermark,$sWatermarkTxt);
+		$image = FileCache::getFile($cachekey);
+		if ($image == null) { // is valid?
                 $img = $path;
 				
 				$image = new \OC_Image();
 				$image -> loadFromFile(OC_Filesystem::getLocalFile($img));
 				if (!$image -> valid())	return false;
 				$image -> fixOrientation();
-				$ret = $image -> preciseResize($image -> width(),  $image -> height());
+				//$ret = $image -> preciseResize($image -> width(),  $image -> height());
 				if($bWatermark) OC_Widget_Helper::txtWaterMark($image ->resource(),$image -> height(),$sWatermarkTxt);
-				if ($image) {
-					OCP\Response::enableCaching(3600 * 24);
-					// 24 hour
-					$image -> show();
-				}
+				FileCache::setFile($cachekey, $image);
+		}
+		if ($image) {
+			OCP\Response::enableCaching(3600 * 24);
+			// 24 hour
+			$image -> show();
+		}
      }
    
     /**
@@ -180,7 +192,7 @@ class OC_Widget_Helper {
  			$SQLMORE=",s.token ";
  		}
 
-         $SQL="SELECT s.id,s.share_with,s.file_target,.s.item_type,s.share_type,s.expiration,s.uid_owner, f.path $SQLMORE FROM  *PREFIX*share s
+	$SQL="SELECT s.id,s.share_with,s.file_target,.s.item_type,s.share_type,s.expiration,s.uid_owner, f.path $SQLMORE FROM  *PREFIX*share s
          LEFT JOIN  *PREFIX*fscache f ON s.item_source=f.id 
          WHERE s.uid_owner='".\OC_User::getUser()."'  ";
          $stmt = \OCP\DB::prepare( $SQL);
